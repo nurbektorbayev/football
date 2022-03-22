@@ -1,0 +1,36 @@
+version: '2.3'
+services:
+  postgresql:
+    image: docker.io/bitnami/postgresql:11
+    container_name: postgresql_football
+    environment:
+      - 'ALLOW_EMPTY_PASSWORD=yes'
+    volumes:
+      - pgdata:/var/lib/postgresql/data
+  pgbouncer:
+    image: docker.io/bitnami/pgbouncer:1
+    container_name: pgbouncer_football
+    ports:
+      - '6432:6432'
+    environment:
+      - POSTGRESQL_HOST=postgresql
+      - PGBOUNCER_AUTH_TYPE=trust
+  php:
+    build: ./php-fpm
+    container_name: php_football
+    environment:
+      APP_ENV: dev
+    volumes:
+      - ../app/:/var/www/app
+      - ./php-fpm/configs/www2.conf:/usr/local/etc/php-fpm.d/www2.conf
+  nginx:
+    build: ./nginx
+    container_name: nginx_football
+    ports:
+      - '85:80'
+    volumes:
+      - ./nginx/hosts/localhost.conf:/etc/nginx/conf.d/default.conf
+      - ../app/:/var/www/app
+volumes:
+  pgdata:
+    driver: local
